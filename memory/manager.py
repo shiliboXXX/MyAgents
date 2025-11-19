@@ -9,7 +9,6 @@ from .base import MemoryItem, MemoryConfig
 from .types.working import WorkingMemory
 from .types.episodic import EpisodicMemory
 from .types.semantic import SemanticMemory
-from .types.perceptual import PerceptualMemory
 
 # 存储和检索功能已被各记忆类型内部实现替代
 
@@ -32,8 +31,7 @@ class MemoryManager:
             user_id: str = "default_user",
             enable_working: bool = True,
             enable_episodic: bool = True,
-            enable_semantic: bool = True,
-            enable_perceptual: bool = False
+            enable_semantic: bool = True
     ):
         self.config = config or MemoryConfig()
         self.user_id = user_id
@@ -51,9 +49,6 @@ class MemoryManager:
 
         if enable_semantic:
             self.memory_types['semantic'] = SemanticMemory(self.config)
-
-        if enable_perceptual:
-            self.memory_types['perceptual'] = PerceptualMemory(self.config)
 
         logger.info(f"MemoryManager初始化完成，启用记忆类型: {list(self.memory_types.keys())}")
 

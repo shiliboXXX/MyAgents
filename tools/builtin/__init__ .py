@@ -5,8 +5,10 @@ MyAgents框架的内置工具集合，包括：
 """
 
 from .search_tool import SearchTool
+from .memory_tool import MemoryTool
 
 
 __all__ = [
-    "SearchTool"
+    "SearchTool",
+    "MemoryTool",
 ]

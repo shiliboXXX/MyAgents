@@ -2,11 +2,11 @@
 
 import re
 from typing import Optional, List, Tuple
-from ..core.agent import Agent
-from ..core.llm import HelloAgentsLLM
-from ..core.config import Config
-from ..core.message import Message
-from ..tools.registry import ToolRegistry
+from core.agent import Agent
+from core.llm import MyAgentsLLM
+from core.config import Config
+from core.message import Message
+from tools.registry import ToolRegistry
 
 # 默认ReAct提示词模板
 DEFAULT_REACT_PROMPT = """你是一个具备推理和行动能力的AI助手。你可以通过思考分析问题，然后调用合适的工具来获取信息，最终给出准确的答案。
@@ -52,7 +52,7 @@ class ReActAgent(Agent):
     def __init__(
         self,
         name: str,
-        llm: HelloAgentsLLM,
+        llm: MyAgentsLLM,
         tool_registry: Optional[ToolRegistry] = None,
         system_prompt: Optional[str] = None,
         config: Optional[Config] = None,
@@ -99,7 +99,7 @@ class ReActAgent(Agent):
             if hasattr(tool, '_available_tools') and tool._available_tools:
                 for mcp_tool in tool._available_tools:
                     # 创建包装工具
-                    from ..tools.base import Tool
+                    from tools.base import Tool
                     wrapped_tool = Tool(
                         name=f"{tool.name}_{mcp_tool['name']}",
                         description=mcp_tool.get('description', ''),
