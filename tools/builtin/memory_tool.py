@@ -70,9 +70,7 @@ class MemoryTool(Tool):
             return self._add_memory(
                 content=parameters.get("content", ""),
                 memory_type=parameters.get("memory_type", "working"),
-                importance=parameters.get("importance", 0.5),
-                file_path=parameters.get("file_path"),
-                modality=parameters.get("modality")
+                importance=parameters.get("importance", 0.5)
             )
         elif action == "search":
             return self._search_memory(
@@ -355,18 +353,14 @@ class MemoryTool(Tool):
         self._add_memory(
             content=f"用户: {user_input}",
             memory_type="working",
-            importance=0.6,
-            type="user_input",
-            conversation_id=self.conversation_count
+            importance=0.6
         )
 
         # 记录Agent响应
         self._add_memory(
             content=f"助手: {agent_response}",
             memory_type="working",
-            importance=0.7,
-            type="agent_response",
-            conversation_id=self.conversation_count
+            importance=0.7
         )
 
         # 如果是重要对话，记录为情景记忆
@@ -375,9 +369,7 @@ class MemoryTool(Tool):
             self._add_memory(
                 content=interaction_content,
                 memory_type="episodic",
-                importance=0.8,
-                type="interaction",
-                conversation_id=self.conversation_count
+                importance=0.8
             )
 
     @tool_action("memory_update", "更新已存在的记忆")
@@ -486,9 +478,7 @@ class MemoryTool(Tool):
         return self._add_memory(
             content=content,
             memory_type="semantic",
-            importance=importance,
-            knowledge_type="factual",
-            source="manual"
+            importance=importance
         )
 
     def get_context_for_query(self, query: str, limit: int = 3) -> str:

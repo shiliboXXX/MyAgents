@@ -716,8 +716,8 @@ def search_vectors(
 
 def _prompt_mqe(query: str, n: int) -> List[str]:
     try:
-        from ...core.llm import HelloAgentsLLM
-        llm = HelloAgentsLLM()
+        from ...core.llm import MyAgentsLLM
+        llm = MyAgentsLLM()
         prompt = [
             {"role": "system",
              "content": "你是检索查询扩展助手。生成语义等价或互补的多样化查询。使用中文，简短，避免标点。"},
@@ -733,8 +733,8 @@ def _prompt_mqe(query: str, n: int) -> List[str]:
 
 def _prompt_hyde(query: str) -> Optional[str]:
     try:
-        from ...core.llm import HelloAgentsLLM
-        llm = HelloAgentsLLM()
+        from ...core.llm import MyAgentsLLM
+        llm = MyAgentsLLM()
         prompt = [
             {"role": "system",
              "content": "根据用户问题，先写一段可能的答案性段落，用于向量检索的查询文档（不要分析过程）。"},
@@ -763,11 +763,11 @@ def search_vectors_expanded(
     if not query:
         return []
 
-    # Create default store if not provided
+    # 创建默认存储
     if store is None:
         store = _create_default_vector_store()
 
-    # expansions
+    # 查询扩展
     expansions: List[str] = [query]
 
     if enable_mqe and mqe_expansions > 0:
@@ -777,18 +777,18 @@ def search_vectors_expanded(
         if hyde_text:
             expansions.append(hyde_text)
 
-    # unique and trim
+    # 去重和修剪
     uniq: List[str] = []
     for e in expansions:
         if e and e not in uniq:
             uniq.append(e)
     expansions = uniq[: max(1, len(uniq))]
 
-    # distribute pool per expansion
+    # 分配候选池
     pool = max(top_k * candidate_pool_multiplier, 20)
     per = max(1, pool // max(1, len(expansions)))
 
-    # Build filter for RAG data
+    # 构建 RAG 数据过滤器
     where = {"memory_type": "rag_chunk"}
     if only_rag_data:
         where["is_rag_data"] = True
@@ -796,7 +796,7 @@ def search_vectors_expanded(
     if rag_namespace:
         where["rag_namespace"] = rag_namespace
 
-    # collect hits across expansions
+    # 收集所有扩展查询的结果
     agg: Dict[str, Dict] = {}
     for q in expansions:
         qv = embed_query(q)
@@ -806,7 +806,7 @@ def search_vectors_expanded(
             s = float(h.get("score", 0.0))
             if mid not in agg or s > float(agg[mid].get("score", 0.0)):
                 agg[mid] = h
-    # return top by score
+    # 按分数排序返回
     merged = list(agg.values())
     merged.sort(key=lambda x: float(x.get("score", 0.0)), reverse=True)
     return merged[:top_k]

@@ -6,6 +6,7 @@ load_dotenv()
 from agent.simple_agent import SimpleAgent
 from tools.registry import ToolRegistry
 from tools.builtin.memory_tool import MemoryTool
+from tools.builtin.rag_tool import RAGTool
 
 def demo_simple_agent_with_memory():
     """演示1: SimpleAgent + MemoryTool - 智能记忆助手"""
@@ -68,8 +69,82 @@ def demo_simple_agent_with_memory():
 
     return memory_tool
 
+def demo_simple_agent_with_rag():
+    """演示2: SimpleAgent + RAGTool - 智能知识助手"""
+    print("\n\n🔍 演示2: SimpleAgent + RAG工具（自动工具调用）")
+    print("=" * 50)
+
+    # 创建LLM
+    llm = MyAgentsLLM()
+
+    # 创建RAG工具 - 使用本地嵌入（推荐）
+    rag_tool = RAGTool(
+        knowledge_base_path="./demo_knowledge_base"
+    )
+
+    # 创建工具注册表
+    tool_registry = ToolRegistry()
+    tool_registry.register_tool(rag_tool)
+
+    # 创建支持工具的SimpleAgent
+    agent = SimpleAgent(
+        name="知识助手",
+        llm=llm,
+        tool_registry=tool_registry,
+        system_prompt="""你是一个专业的知识助手，可以从知识库中检索准确信息。
+
+工具使用指南：
+- 当用户询问技术问题时，使用 [TOOL_CALL:rag:search=关键词] 搜索知识库
+- 基于检索到的信息提供准确回答
+- 如果知识库中没有相关信息，诚实告知用户
+
+工作流程：
+1. 分析用户问题，提取关键词
+2. 搜索知识库获取相关信息
+3. 基于搜索结果给出专业回答"""
+    )
+
+    print("📚 正在构建知识库...")
+
+    # 添加技术知识到RAG系统
+    knowledge_items = [
+        ("Python是一种高级编程语言，由Guido van Rossum在1989年开始开发，1991年首次发布。Python以其简洁的语法和强大的功能而闻名，广泛应用于Web开发、数据科学、人工智能等领域。", "python_intro"),
+        ("机器学习是人工智能的一个分支，它使计算机能够在没有明确编程的情况下学习和改进。主要包括监督学习、无监督学习和强化学习三种类型。常用的Python机器学习库包括scikit-learn、pandas、numpy等。", "ml_basics"),
+        ("深度学习是机器学习的一个子集，使用多层神经网络来模拟人脑的工作方式。深度学习在图像识别、自然语言处理、语音识别等领域取得了突破性进展。主要的深度学习框架包括TensorFlow、PyTorch、Keras等。", "deep_learning"),
+        ("自然语言处理(NLP)是人工智能的一个重要分支，专注于计算机与人类语言之间的交互。NLP的主要任务包括文本分类、情感分析、机器翻译、问答系统等。常用的Python NLP库包括NLTK、spaCy、transformers等。", "nlp_intro")
+    ]
+
+    for content, doc_id in knowledge_items:
+        result = rag_tool.run({"action": "add_text", "text": content, "document_id": doc_id})
+        print(f"  ✅ 已添加: {doc_id}")
+
+    print(f"\n📊 知识库统计:")
+    stats = rag_tool.run({"action": "stats"})
+    print(stats)
+
+    # 测试智能问答
+    queries = [
+        "Python是什么时候发明的？谁发明的？",
+        "什么是深度学习？它和机器学习有什么关系？",
+        "推荐一些Python机器学习的库",
+        "什么是量子计算？"  # 知识库中没有的信息
+    ]
+
+    print(f"\n💬 开始智能问答演示...")
+
+    for i, query in enumerate(queries, 1):
+        print(f"\n--- 查询 {i} ---")
+        print(f"👤 用户: {query}")
+
+        # SimpleAgent会自动使用RAG工具搜索并回答
+        response = agent.run(query)
+        print(f"🤖 助手: {response}")
+
+    return rag_tool
+
 if __name__ == '__main__':
-    demo_simple_agent_with_memory()
+    # demo_simple_agent_with_memory()
+    demo_simple_agent_with_rag()
 
 
     # try:
